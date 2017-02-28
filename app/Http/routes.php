@@ -22,7 +22,9 @@ Route::any('pay/result','Api\V1\ZLLController@payResult');
 //webhooks回调地址
 Route::any('pay/webhooks','Api\V1\ZLLController@webhooks');
 //wechat回调地址
-Route::any('wechat/webhooks','Api\V2\WeChatController@webhooks');
+Route::any('wechat/webhooks/member','Api\V2\WeChatController@webhooksMember');
+//wechat回调地址
+Route::any('wechat/webhooks/yabi','Api\V2\WeChatController@webhooksYabi');
 
 // API 路由接管
 $api = app('api.router');

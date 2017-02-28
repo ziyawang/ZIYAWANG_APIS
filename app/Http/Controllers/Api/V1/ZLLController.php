@@ -405,6 +405,14 @@ class ZLLController extends BaseController
         }
         DB::table('T_P_RUSHPROJECT')->insert(['ProjectID'=>$ProjectID, 'ServiceID'=>$ServiceID, 'RushTime'=>$RushTime]);
 
+
+        //判断是否是该信息类型的会员，如果是就把价格设置为0
+        $typeid = $Project->TypeID;
+        $right = explode(',', $user->right);
+        if(in_array($typeid, $right)){
+            $price = 0;
+        }
+
         //整理插入数据
         $data = array();
         $data['UserID'] = $user->userid;
