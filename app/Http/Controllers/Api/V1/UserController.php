@@ -16,6 +16,7 @@ use Tymon\users\Exceptions\JWTException;
 use DB;
 use App\Service;
 use App\Project;
+use PDO;
 
 class UserController extends BaseController
 {
@@ -639,11 +640,15 @@ class UserController extends BaseController
         $Project = new \App\Http\Controllers\Api\V2\ProjectController();
         $UserID = $this->auth->user()->toArray()['userid'];
         $ServiceID = Service::where('UserID',$UserID)->pluck('ServiceID');
-        $projects = DB::table('T_P_RUSHPROJECT')->where('ServiceID',$ServiceID)->where('CooperateFlag','0')->orderBy('RushTime','desc')->lists('ProjectID');
+        DB::setFetchMode(PDO::FETCH_ASSOC);
+        $projects = DB::table('T_P_RUSHPROJECT')->join('T_P_PROJECTINFO','T_P_PROJECTINFO.ProjectID','=','T_P_RUSHPROJECT.ProjectID')->where('T_P_RUSHPROJECT.ServiceID',$ServiceID)->where('T_P_RUSHPROJECT.CooperateFlag','0')->where('T_P_PROJECTINFO.CertifyState','1')->orderBy('T_P_RUSHPROJECT.RushTime','desc')->select('T_P_RUSHPROJECT.ProjectID')->get();
+        DB::setFetchMode(PDO::FETCH_ASSOC);
+        // $projects = DB::table('T_P_RUSHPROJECT')->where('ServiceID',$ServiceID)->where('CooperateFlag','0')->orderBy('RushTime','desc')->lists('ProjectID');
         $counts = count($projects);
         $pages = ceil($counts/$pagecount);
 
-        $projects = DB::table('T_P_RUSHPROJECT')->skip($skipnum)->take($pagecount)->where('CooperateFlag','0')->where("ServiceID", $ServiceID)->orderBy('RushTime','desc')->lists('ProjectID');
+        $projects = DB::table('T_P_RUSHPROJECT')->skip($skipnum)->take($pagecount)->whereIn('ProjectID',$projects)->orderBy('RushTime','desc')->lists('ProjectID');
+        // $projects = DB::table('T_P_RUSHPROJECT')->skip($skipnum)->take($pagecount)->where('CooperateFlag','0')->where("ServiceID", $ServiceID)->orderBy('RushTime','desc')->lists('ProjectID');
 
         $data = [];
         foreach ($projects as $pro) {

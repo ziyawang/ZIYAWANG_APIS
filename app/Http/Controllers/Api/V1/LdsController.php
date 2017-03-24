@@ -84,27 +84,34 @@ class LdsController extends  BaseController{
 
 	public function  reVideo($id){
 		$payload = app('request')->all();
-	           $startpage = isset($payload['startpage']) ?  $payload['startpage'] : 1;
-	           $pagecount = isset($payload['pagecount']) ?  $payload['pagecount'] : 5;
-	           $skipnum = ($startpage-1)*$pagecount;
-	           $videoId=$id;
-	           $datas=DB::table("T_V_VIDEOINFO")->select("VideoLabel")->where("VideoID",$videoId)->get();
-	           foreach($datas as $data){
-	           	$types=$data->VideoLabel;
-	           }
-	           $type=explode(",",$types);
-	           $matchers=array();
-	           foreach($type as $value){
-	           	if($value=="tj"){
-	           		continue;
-	           	}
-	           	 $results=DB::table("T_V_VIDEOINFO")->skip($skipnum)->take($pagecount)->where("VideoLabel","like","%".$value."%")->where("VideoID","<>",$id)->where("Flag",1)->orderBy("VideoID","desc")->get();
-	           	 $matchers=array_merge($matchers,$results);
-	           }
-	           $counts=count($matchers);
-	           $pages=ceil($counts/$pagecount);
-	          
-	          return $this->response->array(['counts'=>$counts, 'pages'=>$pages, 'data'=>$matchers, 'currentpage'=>$startpage]);
+		$startpage = isset($payload['startpage']) ?  $payload['startpage'] : 1;
+		$pagecount = isset($payload['pagecount']) ?  $payload['pagecount'] : 5;
+		$skipnum = ($startpage-1)*$pagecount;
+		$videoId=$id;
+		$datas=DB::table("T_V_VIDEOINFO")->select("VideoLabel")->where("VideoID",$videoId)->get();
+		foreach($datas as $data){
+			$types=$data->VideoLabel;
+		}
+		$type=explode(",",$types);
+		$matchers=array();
+		foreach($type as $value){
+			if($value=="tj"){
+				continue;
+			}
+			 $results=DB::table("T_V_VIDEOINFO")->skip($skipnum)->take($pagecount)->where("VideoLabel","like","%".$value."%")->where("VideoID","<>",$id)->where("Flag",1)->orderBy("VideoID","desc")->get();
+			 $matchers=array_merge($matchers,$results);
+		}
+	 	$data = [];
+        $User = $this->auth->user() ? $this->auth->user()->toArray() : null;
+		$Video = new VideoController();
+		foreach ($matchers as $matcher) {
+			$item = $Video->getInfo($matcher->VideoID,$User);
+            $data[] = $item;
+		}
+		$counts=count($matchers);
+		$pages=ceil($counts/$pagecount);
+
+		return $this->response->array(['counts'=>$counts, 'pages'=>$pages, 'data'=>$data, 'currentpage'=>$startpage]);
 	}
 
 //app服务方星级认证

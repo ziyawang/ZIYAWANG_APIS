@@ -104,8 +104,9 @@ class VideoController extends BaseController
         }
         
         $data = [];
+        $User = $this->auth->user() ? $this->auth->user()->toArray() : null;
         foreach ($videos as $id) {
-            $item = $this->getInfo($id);
+            $item = $this->getInfo($id, $User);
             $data[] = $item;
         }
         return $this->response->array(['counts'=>$counts, 'pages'=>$pages, 'data'=>$data, 'currentpage'=>$startpage]);
@@ -116,8 +117,23 @@ class VideoController extends BaseController
      *
      * @param Request $request
      */
-    public function getInfo($id) {
-        $data = Video::select('VideoID','VideoTitle','VideoDes','VideoLogo','VideoThumb','VideoLabel','VideoAuthor','PublishTime','ViewCount','ZanCount','CollectionCount','VideoLink','VideoLink2')->where('VideoID',$id)->first()->toArray();
+    public function getInfo($id, $User) {
+        $data = Video::select('VideoID','VideoTitle','VideoDes','VideoLogo','VideoThumb','VideoLabel','VideoAuthor','PublishTime','ViewCount','ZanCount','CollectionCount','VideoLink','VideoLink2','Member','Price')->where('VideoID',$id)->first()->toArray();
+        $data['PayFlag'] = 0;
+        $data['Account'] = 0;
+        $data['right'] = '';
+        if($User){
+            $tmp = DB::table('T_V_CONSUME')->where(['VideoID'=>$id, 'UserID'=>$User['userid']])->get();
+            $tmpp = DB::table('T_U_MONEY')->where(['VideoID'=>$id, 'UserID'=>$User['userid']])->get();
+            if($tmp || $tmpp){
+                $data['PayFlag'] = 1;
+            }
+            $data['Account'] = $User['Account'];
+            $data['right'] = $User['right'];
+        }
+        if($data['right'] == ''){
+            $data['right'] = 0;
+        }
         return $data;
     }
 
@@ -127,8 +143,8 @@ class VideoController extends BaseController
      * @param Request $request
      */
     public function videoInfo($id) {
-        
-        $data = $this->getInfo($id);
+        $User = $this->auth->user() ? $this->auth->user()->toArray() : null;
+        $data = $this->getInfo($id,$User);
         Video::where('VideoID',$id)->increment('ViewCount');
         $UserID = $this->auth->user() ? $this->auth->user()->toArray()['userid'] : null;
         $data['CollectFlag'] = 0;

@@ -647,19 +647,31 @@ class ZLLController extends BaseController
 
     public function getPayFlag(){
         $payload = app('request')->all();
-        $ProjectID = $payload['ProjectID'];
         $UserID = $this->auth->user() ? $this->auth->user()->toArray()['userid'] : null;
         if(!$UserID){
             return $this->response->array(['status_code' => '400', 'msg' => 'token错误！']);
         }
-        $ServiceID = Service::where('UserID',$UserID)->pluck('ServiceID');
-        //支付标记
-        $tmp = DB::table('T_U_MONEY')->where('UserID', $UserID)->where('ProjectID', $ProjectID)->get();
-        $tmpp = DB::table('T_P_RUSHPROJECT')->where(['ServiceID'=>$ServiceID, 'ProjectID'=>$ProjectID])->get();
-        if ($tmp || $tmpp) {
-            $PayFlag = 1;
-        } else {
-            $PayFlag = 0;
+        if(isset($payload['ProjectID'])){
+            $ProjectID = $payload['ProjectID'];
+            $ServiceID = Service::where('UserID',$UserID)->pluck('ServiceID');
+            //支付标记
+            $tmp = DB::table('T_U_MONEY')->where('UserID', $UserID)->where('ProjectID', $ProjectID)->get();
+            $tmpp = DB::table('T_P_RUSHPROJECT')->where(['ServiceID'=>$ServiceID, 'ProjectID'=>$ProjectID])->get();
+            if ($tmp || $tmpp) {
+                $PayFlag = 1;
+            } else {
+                $PayFlag = 0;
+            }
+        }
+        if(isset($payload['VideoID'])){
+            $VideoID = $payload['VideoID'];
+            $tmp = DB::table('T_V_CONSUME')->where(['VideoID'=>$VideoID, 'UserID'=>$UserID])->get();
+            $tmpp = DB::table('T_U_MONEY')->where(['VideoID'=>$VideoID, 'UserID'=>$UserID])->get();
+            if ($tmp || $tmpp) {
+                $PayFlag = 1;
+            } else {
+                $PayFlag = 0;
+            }
         }
         return $this->response->array(['status_code' => '200', 'PayFlag' => $PayFlag]);        
     }

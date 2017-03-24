@@ -3722,7 +3722,7 @@
                 "sebastian/version": "~1.0"
             },
             "require-dev": {
-                "ext-xdebug": ">=2.1.4",
+                "ext-xdebug": ">=2.1.5",
                 "phpunit/phpunit": "~4"
             },
             "suggest": {

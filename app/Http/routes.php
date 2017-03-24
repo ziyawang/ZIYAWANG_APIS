@@ -290,4 +290,8 @@ $api->version('v1', ['protected' => true, 'middleware'=>['access','cross']], fun
 
     //01.18微信支付统一下单接口
     $api->post('/wechat/pay','App\Http\Controllers\Api\V2\WeChatController@done');
+
+    //亮亮03.06
+    //视频消费接口
+    $api->post('/video/consume','App\Http\Controllers\Api\V2\VideoController@videoConsume');
 });
